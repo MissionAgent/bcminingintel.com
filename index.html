@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -513,6 +514,14 @@
     color: var(--text-dim);
     font-weight: 400;
   }
+  .tier-price-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-top: -12px;
+    margin-bottom: 16px;
+  }
   .tier-features {
     list-style: none;
     margin-bottom: 24px;
@@ -560,10 +569,11 @@
   .btn-tier-gold:hover { background: #f0b030; }
   .btn-tier-ent {
     background: transparent;
-    color: var(--gold);
-    border: 1px solid var(--gold-dim);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    cursor: default;
   }
-  .btn-tier-ent:hover { background: rgba(232,160,32,0.1); }
+  .btn-tier-ent:hover { background: rgba(232,160,32,0.06); color: var(--text-mid); }
 
   /* ── FOOTER ── */
   .footer {
@@ -612,7 +622,7 @@
     PREVIEW MODE — LIVE DATA REQUIRES SUBSCRIPTION
   </div>
   <div class="preview-cta-wrap">
-    <span class="preview-msg">BC's only permit velocity intelligence platform — launching April 1, 2026</span>
+    <span class="preview-msg">BC's only permit velocity intelligence platform — Silver &amp; Gold launching July 2026</span>
     <a href="https://bcminingintel.softr.app/login" class="btn-login">Login</a>
     <a href="#plans" class="btn-subscribe">Subscribe</a>
   </div>
@@ -687,13 +697,13 @@
     <div class="card">
       <div class="card-label">Vendor Availability</div>
       <div class="card-title">Cert-Verified &amp; Mobilization-Ready</div>
-      <div class="vendor-big">47</div>
-      <div class="vendor-sub">Golden Triangle vendors — certs current</div>
+      <div class="vendor-big">17</div>
+      <div class="vendor-sub">Golden Triangle projects monitored</div>
       <div class="vendor-tags">
-        <span class="vtag vtag-drill">Drilling: 12</span>
-        <span class="vtag vtag-env">Environmental: 9</span>
-        <span class="vtag vtag-camp">Camp: 8</span>
-        <span class="vtag vtag-warn">Expiring 30d: 6</span>
+        <span class="vtag vtag-drill">Drilling vendors: active</span>
+        <span class="vtag vtag-env">Environmental: tracked</span>
+        <span class="vtag vtag-camp">Camp services: listed</span>
+        <span class="vtag vtag-warn">186 GT vendors indexed</span>
       </div>
     </div>
 
@@ -754,7 +764,7 @@
       </div>
       <div class="macr-footnote">
         All Tier 1 vendors screened for PFE-sourced equipment.<br>
-        Last updated: March 2026.
+        Last updated: June 2026.
       </div>
       <div class="lock-overlay">
         <div class="lock-msg">// ENTERPRISE — FULL MACR COMPLIANCE REPORTS</div>
@@ -766,7 +776,7 @@
 
   <!-- TIER TABLE -->
   <div id="plans">
-    <div class="section-label">// Recommended Plan</div>
+    <div class="section-label">// Choose Your Plan</div>
     <div class="tiers">
 
       <!-- Silver -->
@@ -774,11 +784,11 @@
         <div class="tier-name">Silver</div>
         <div class="tier-price">CA$70<span>/mo</span></div>
         <ul class="tier-features">
-          <li class="on">Vendor directory — name &amp; contact</li>
-          <li class="on">Basic cert status lookup</li>
-          <li class="on">Limited permit status view</li>
+          <li class="on">17 GT projects monitored</li>
+          <li class="on">Permit velocity tracking</li>
+          <li class="on">Indigenous governance status</li>
+          <li class="on">Vault Score access</li>
           <li class="off">CPO escalation alerts</li>
-          <li class="off">MCCF status feed</li>
           <li class="off">Pipeline Watch</li>
         </ul>
         <a href="https://buy.stripe.com/aFa7sM4rV3rHa4H3t4fw403" class="btn-tier btn-tier-default">Get Started</a>
@@ -786,15 +796,15 @@
 
       <!-- Gold -->
       <div class="tier-card featured">
-        <div class="best-badge">BEST FOR YOU</div>
+        <div class="best-badge">MOST POPULAR</div>
         <div class="tier-name">Gold</div>
         <div class="tier-price">CA$280<span>/mo</span></div>
         <ul class="tier-features">
-          <li class="on">Live vendor cert tracker (all GT categories)</li>
+          <li class="on">Everything in Silver</li>
           <li class="on">Permit velocity monitor — all tiers</li>
           <li class="on">CPO escalation alerts — 14-day trigger</li>
           <li class="on">MCCF status feed — real time</li>
-          <li class="on">MACR compliance tags per vendor</li>
+          <li class="on">Supply chain sovereignty signals</li>
           <li class="on">Weekly permit digest (Friday)</li>
         </ul>
         <a href="https://buy.stripe.com/9B6dRa9Mf8M11yb5Bcfw404" class="btn-tier btn-tier-gold">Subscribe — CA$280/mo</a>
@@ -803,16 +813,17 @@
       <!-- Enterprise -->
       <div class="tier-card">
         <div class="tier-name">Enterprise</div>
-        <div class="tier-price">CA$695<span>/mo</span></div>
+        <div class="tier-price">CA$1,500<span>/mo</span></div>
+        <div class="tier-price-note">// LAUNCHING NOVEMBER 2026</div>
         <ul class="tier-features">
           <li class="on">Everything in Gold</li>
           <li class="on">Project-specific permit risk reports</li>
-          <li class="on">Custom vendor RFQ shortlisting</li>
-          <li class="on">API access — integrate with your systems</li>
+          <li class="on">SCSS supply chain sovereignty reports</li>
           <li class="on">Pipeline Watch — Silent Pipeline data</li>
           <li class="on">Priority analyst access</li>
+          <li class="on">Custom briefings on request</li>
         </ul>
-        <a href="https://buy.stripe.com/7sY7sM9Mfget2Cf9Rsfw405" class="btn-tier btn-tier-ent">Contact for Access</a>
+        <a href="mailto:chriscaldwell@bcminingintel.com?subject=Enterprise%20Inquiry%20%E2%80%94%20November%202026&body=Hi%20Chris%2C%0A%0AI%27m%20interested%20in%20the%20Enterprise%20tier%20launching%20November%202026.%20Please%20add%20me%20to%20the%20waitlist.%0A%0AOrganization%3A%0ARole%3A%0AUse%20case%3A" class="btn-tier btn-tier-ent">Notify Me — November 2026</a>
       </div>
 
     </div>
