@@ -513,6 +513,14 @@
     color: var(--text-dim);
     font-weight: 400;
   }
+  .tier-price-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-top: -12px;
+    margin-bottom: 16px;
+  }
   .tier-features {
     list-style: none;
     margin-bottom: 24px;
@@ -560,10 +568,11 @@
   .btn-tier-gold:hover { background: #f0b030; }
   .btn-tier-ent {
     background: transparent;
-    color: var(--gold);
-    border: 1px solid var(--gold-dim);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    cursor: default;
   }
-  .btn-tier-ent:hover { background: rgba(232,160,32,0.1); }
+  .btn-tier-ent:hover { background: rgba(232,160,32,0.06); color: var(--text-mid); }
 
   /* ── FOOTER ── */
   .footer {
@@ -612,8 +621,8 @@
     PREVIEW MODE — LIVE DATA REQUIRES SUBSCRIPTION
   </div>
   <div class="preview-cta-wrap">
-    <span class="preview-msg">BC's only permit velocity intelligence platform — launching April 1, 2026</span>
-    <a href="https://florentino7852.softr.app/log-in" class="btn-login">Login</a>
+    <span class="preview-msg">BC's only permit velocity intelligence platform — Silver &amp; Gold launching July 2026</span>
+    <a href="https://bcminingintel.softr.app/login" class="btn-login">Login</a>
     <a href="#plans" class="btn-subscribe">Subscribe</a>
   </div>
 </div>
@@ -640,9 +649,9 @@
   <div class="preview-notice">
     <div>
       <div class="preview-notice-text">// SAMPLE DATA — SUBSCRIBE TO ACCESS LIVE INTELLIGENCE</div>
-      <div class="preview-notice-sub">All figures below are illustrative. Real-time permit tracking, CPO escalation alerts, and vendor compliance data unlock upon subscription.</div>
+      <div class="preview-notice-sub">All figures below are illustrative. Real-time permit tracking, CPO escalation tracking, and vendor compliance data unlock upon subscription.</div>
     </div>
-    <a href="https://florentino7852.softr.app/sign-up" class="btn-sub-sm">View Plans</a>
+    <a href="#plans" class="btn-sub-sm">View Plans</a>
   </div>
 
   <!-- TOP 3 CARDS -->
@@ -687,13 +696,13 @@
     <div class="card">
       <div class="card-label">Vendor Availability</div>
       <div class="card-title">Cert-Verified &amp; Mobilization-Ready</div>
-      <div class="vendor-big">47</div>
-      <div class="vendor-sub">Golden Triangle vendors — certs current</div>
+      <div class="vendor-big">17</div>
+      <div class="vendor-sub">Golden Triangle projects monitored</div>
       <div class="vendor-tags">
-        <span class="vtag vtag-drill">Drilling: 12</span>
-        <span class="vtag vtag-env">Environmental: 9</span>
-        <span class="vtag vtag-camp">Camp: 8</span>
-        <span class="vtag vtag-warn">Expiring 30d: 6</span>
+        <span class="vtag vtag-drill">Drilling vendors: active</span>
+        <span class="vtag vtag-env">Environmental: tracked</span>
+        <span class="vtag vtag-camp">Camp services: listed</span>
+        <span class="vtag vtag-warn">240+ GT vendors indexed</span>
       </div>
     </div>
 
@@ -702,41 +711,41 @@
   <!-- BOTTOM 2 CARDS (locked) -->
   <div class="cards-bottom">
 
-    <!-- MCCF Status Feed (locked) -->
+    <!-- Permit Tracker (locked) — the daily framework record -->
     <div class="card card-locked">
-      <div class="card-label">MCCF Status Feed</div>
-      <div class="card-title">Mineral Claims Consultation Framework</div>
+      <div class="card-label">Permit Tracker</div>
+      <div class="card-title">The Daily Framework Record</div>
+      <div class="mccf-row">
+        <span class="mccf-mine">Goldstorm</span>
+        <div class="mccf-right">
+          <span class="tag tag-amber">DAY 34/40</span>
+          <span class="mccf-note">Tier 1 — approaching target</span>
+        </div>
+      </div>
       <div class="mccf-row">
         <span class="mccf-mine">Eskay Creek</span>
         <div class="mccf-right">
-          <span class="tag tag-green">S7 CLEARED</span>
-          <span class="mccf-note">Section 7 IBA executed Jan 2026</span>
+          <span class="tag tag-green">ON PACE</span>
+          <span class="mccf-note">Day 18/90 — Tier 2</span>
         </div>
       </div>
       <div class="mccf-row">
         <span class="mccf-mine">Red Chris</span>
         <div class="mccf-right">
-          <span class="tag tag-orange">ACTIVE CONSULT</span>
-          <span class="mccf-note">Block cave expansion in review</span>
-        </div>
-      </div>
-      <div class="mccf-row">
-        <span class="mccf-mine">Galore Creek</span>
-        <div class="mccf-right">
-          <span class="tag tag-orange">ACTIVE CONSULT</span>
-          <span class="mccf-note">Federal funding MOU in progress</span>
+          <span class="tag tag-red">DAY 96/90</span>
+          <span class="mccf-note">Past target — escalation window open</span>
         </div>
       </div>
       <div class="mccf-row">
         <span class="mccf-mine">Treaty Creek</span>
         <div class="mccf-right">
-          <span class="tag tag-blue">DRILL PERMITS</span>
-          <span class="mccf-note">NoW permit active — no IBA yet</span>
+          <span class="tag tag-blue">NEW NoW</span>
+          <span class="mccf-note">Entered the framework queue this week</span>
         </div>
       </div>
       <div class="lock-overlay">
-        <div class="lock-msg">// GOLD + ENTERPRISE — REAL-TIME MCCF FEED</div>
-        <a href="https://florentino7852.softr.app/sign-up" class="lock-btn">Unlock Access</a>
+        <div class="lock-msg">// GOLD — THE DAILY FRAMEWORK RECORD</div>
+        <a href="#plans" class="lock-btn">Unlock Access</a>
       </div>
     </div>
 
@@ -754,11 +763,11 @@
       </div>
       <div class="macr-footnote">
         All Tier 1 vendors screened for PFE-sourced equipment.<br>
-        Last updated: March 2026.
+        Last updated: June 2026.
       </div>
       <div class="lock-overlay">
         <div class="lock-msg">// ENTERPRISE — FULL MACR COMPLIANCE REPORTS</div>
-        <a href="https://florentino7852.softr.app/sign-up" class="lock-btn">Unlock Access</a>
+        <a href="#plans" class="lock-btn">Unlock Access</a>
       </div>
     </div>
 
@@ -766,53 +775,55 @@
 
   <!-- TIER TABLE -->
   <div id="plans">
-    <div class="section-label">// Recommended Plan</div>
+    <div class="section-label">// Choose Your Plan</div>
     <div class="tiers">
 
-      <!-- Vendor -->
+      <!-- Silver -->
       <div class="tier-card">
-        <div class="tier-name">Vendor</div>
+        <div class="tier-name">Silver</div>
         <div class="tier-price">CA$70<span>/mo</span></div>
         <ul class="tier-features">
-          <li class="on">Vendor directory — name &amp; contact</li>
-          <li class="on">Basic cert status lookup</li>
-          <li class="on">Limited permit status view</li>
-          <li class="off">CPO escalation alerts</li>
-          <li class="off">MCCF status feed</li>
-          <li class="off">Pipeline Watch</li>
+          <li class="on">Smart RFQ — vendors matched to each project's current status, 3 modes</li>
+          <li class="on">Vendor Directory — 240+ verified GT vendors</li>
+          <li class="on">Mine Profiles — 17 projects scored for FORGE, permit velocity &amp; consent</li>
+          <li class="on">Mine Development Pipeline — stage-by-stage opportunity map</li>
+          <li class="on">Intel volume — current open edition</li>
+          <li class="off">Permit Tracker — Gold</li>
+          <li class="off">Pipeline Watch — Enterprise, Nov 2026</li>
         </ul>
-        <a href="https://florentino7852.softr.app/sign-up" class="btn-tier btn-tier-default">Get Started</a>
+        <a href="https://buy.stripe.com/aFa7sM4rV3rHa4H3t4fw403" class="btn-tier btn-tier-default">Get Started</a>
       </div>
 
       <!-- Gold -->
       <div class="tier-card featured">
-        <div class="best-badge">BEST FOR YOU</div>
+        <div class="best-badge">MOST POPULAR</div>
         <div class="tier-name">Gold</div>
         <div class="tier-price">CA$280<span>/mo</span></div>
         <ul class="tier-features">
-          <li class="on">Live vendor cert tracker (all GT categories)</li>
-          <li class="on">Permit velocity monitor — all tiers</li>
-          <li class="on">CPO escalation alerts — 14-day trigger</li>
-          <li class="on">MCCF status feed — real time</li>
-          <li class="on">MACR compliance tags per vendor</li>
-          <li class="on">Weekly permit digest (Friday)</li>
+          <li class="on">Everything in Silver</li>
+          <li class="on">Permit Tracker — the daily framework record</li>
+          <li class="on">Decision Engine — what each permit signal means</li>
+          <li class="on">Project Stage Pipeline — live 17-project board</li>
+          <li class="on">CPO escalation tracking — 14-day framework triggers</li>
+          <li class="on">Weekly permit digest — every Friday</li>
+          <li class="on">Intel archive — 3 most recent sealed volumes</li>
         </ul>
-        <a href="https://florentino7852.softr.app/sign-up" class="btn-tier btn-tier-gold">Subscribe — CA$280/mo</a>
+        <a href="https://buy.stripe.com/9B6dRa9Mf8M11yb5Bcfw404" class="btn-tier btn-tier-gold">Subscribe — CA$280/mo</a>
       </div>
 
       <!-- Enterprise -->
       <div class="tier-card">
         <div class="tier-name">Enterprise</div>
-        <div class="tier-price">CA$695<span>/mo</span></div>
+        <div class="tier-price">CA$1,500<span>/mo</span></div>
+        <div class="tier-price-note">// LAUNCHING NOVEMBER 2026</div>
         <ul class="tier-features">
           <li class="on">Everything in Gold</li>
           <li class="on">Project-specific permit risk reports</li>
-          <li class="on">Custom vendor RFQ shortlisting</li>
-          <li class="on">API access — integrate with your systems</li>
           <li class="on">Pipeline Watch — Silent Pipeline data</li>
           <li class="on">Priority analyst access</li>
+          <li class="on">Custom briefings on request</li>
         </ul>
-        <a href="https://florentino7852.softr.app/sign-up" class="btn-tier btn-tier-ent">Contact for Access</a>
+        <a href="mailto:inquiries@bcminingintel.com?subject=Enterprise%20Inquiry%20%E2%80%94%20November%202026&body=Hi%20Chris%2C%0A%0AI%27m%20interested%20in%20the%20Enterprise%20tier%20launching%20November%202026.%20Please%20add%20me%20to%20the%20waitlist.%0A%0AOrganization%3A%0ARole%3A%0AUse%20case%3A" class="btn-tier btn-tier-ent">Notify Me — November 2026</a>
       </div>
 
     </div>
@@ -827,7 +838,8 @@
   </div>
   <div class="footer-brand">
     BC MINING INTEL<br>
-    <a href="mailto:chriscaldwell@bcminingintel.com">chriscaldwell@bcminingintel.com</a><br>
+    <a href="mailto:inquiries@bcminingintel.com">inquiries@bcminingintel.com</a><br>
+    <a href="mailto:inquiries@bcminingintel.com?subject=Vendor%20Listing%20Request&body=Company%20Name%3A%0AService%20Category%3A%0AWebsite%3A%0AHQ%20Location%3A%0AGolden%20Triangle%20Presence%3A%0ABrief%20Description%3A%0AContact%20Name%3A">List Your Business</a> &nbsp;|&nbsp; <a href="mailto:inquiries@bcminingintel.com?subject=Vendor%20Listing%20Update&body=Company%20Name%3A%0AWhat%20needs%20updating%3A%0ASource%20or%20verification%20link%3A%0AContact%20Name%3A">Update Your Listing</a><br>
     bcminingintel.com
   </div>
 </div>
