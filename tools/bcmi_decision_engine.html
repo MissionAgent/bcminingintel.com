@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BC Mining Intel — Decision Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #0d1117; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+
+
+
+
+
+
+
+
+
+
+const BCMI_TOKENS = `
+  --bg-deep: #0d1117; --bg-card: #131a24; --bg-card2: #0f1520;
+  --border: #1e2d40; --border-hi: #2a4060; --border-subtle: #141d2a;
+  --gold: #e8a020; --gold-dim: #a06810; --gold-glow: rgba(232,160,32,0.12);
+  --teal: #1ab8a0; --teal-glow: rgba(26,184,160,0.08);
+  --green: #30c060; --green-bg: rgba(48,192,96,0.10); --green-border: rgba(48,192,96,0.25);
+  --amber: #e8a020; --amber-bg: rgba(232,160,32,0.10); --amber-border: rgba(232,160,32,0.25);
+  --red: #d94040; --red-bg: rgba(217,64,64,0.10); --red-border: rgba(217,64,64,0.25);
+  --blue: #4a90d9; --blue-bg: rgba(74,144,217,0.10);
+  --text-hi: #e8edf4; --text-mid: #8a9ab0; --text-dim: #4a5a6a;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-cond: 'Barlow Condensed', sans-serif;
+  --font-sans: 'Barlow', sans-serif;
+`;
+
+const CATEGORIES = [
+  { id: "all", label: "All Signals", icon: "◈", count: null },
+  { id: "lifecycle", label: "Project Lifecycle", icon: "⬡", color: "var(--blue)" },
+  { id: "permit", label: "Permit System", icon: "⏱", color: "var(--green)" },
+  { id: "indigenous", label: "Indigenous Consent", icon: "◉", color: "var(--teal)" },
+  { id: "vault", label: "Vault Score", icon: "◆", color: "var(--gold)" },
+  { id: "capital", label: "US Capital / FORGE", icon: "⬟", color: "var(--gold-dim)" },
+  { id: "compliance", label: "Compliance", icon: "⚑", color: "var(--red)" },
+  { id: "ownership", label: "Ownership Events", icon: "⬡", color: "var(--text-dim)" },
+];
+
+const IMPACT_CONFIG = {
+  investors: { label: "Investors", color: "var(--blue)", bg: "var(--blue-bg)" },
+  vendors: { label: "Vendors", color: "var(--green)", bg: "var(--green-bg)" },
+  operators: { label: "Operators", color: "var(--gold-dim)", bg: "var(--gold-glow)" },
+  subscribers: { label: "Subscribers", color: "var(--teal)", bg: "var(--teal-glow)" },
+  platform: { label: "Platform", color: "var(--gold)", bg: "var(--gold-glow)" },
+};
+
+const PRIORITY_CONFIG = {
+  critical: { label: "CRITICAL", color: "var(--red)", bg: "var(--red-bg)" },
+  high: { label: "HIGH", color: "var(--gold)", bg: "var(--gold-glow)" },
+  medium: { label: "MEDIUM", color: "var(--blue)", bg: "var(--blue-bg)" },
+};
+
+const decisions = [
+  // ─── LIFECYCLE ───────────────────────────────────────────────
+  {
+    id: "lc-1", category: "lifecycle", priority: "medium",
+    trigger: "First NoW filed / Geophysics results positive",
+    fromState: "Grassroots",
+    toState: "Target Validation",
+    timeHorizon: "Immediate → months of drilling",
+    vaultDelta: 0,
+    vaultNote: "Not yet scored. Commodity vs. USGS 60 list check required.",
+    impacts: ["vendors", "platform"],
+    platformSignal: "New Silent Pipeline candidate. Apply four-gate triage checklist. Vendors: heli, geophysics, assay labs now active.",
+    userAction: "Add to Silent Pipeline table (tbluUb02zvMVgfHsk). Tag commodity. Set Watch Level. Do not promote to GT Core until 30+ entries justify Pipeline Watch.",
+    airtableField: "Silent Pipeline → Stage, Commodity, Trigger, Watch Level",
+    snapshot: "Note date of first NoW, commodity, corridor. This is the earliest possible entry point.",
+  },
+  {
+    id: "lc-2", category: "lifecycle", priority: "medium",
+    trigger: "Positive maiden drill results / assay filed",
+    fromState: "Target Validation",
+    toState: "Resource Definition",
+    timeHorizon: "Weeks (assay turnaround) → 1-2 seasons of drilling",
+    vaultDelta: 1,
+    vaultNote: "Permit Speed activates. Mineral Criticality confirmed from assay commodity data.",
+    impacts: ["vendors", "investors", "subscribers"],
+    platformSignal: "NoW likely incoming — watch WFS scraper for new submission. Silver subscribers: project activity newsflow begins. Assay lab turnaround times become relevant signal.",
+    userAction: "Verify NoW submission in Active Permits. Assign Tier Category. Confirm Submission Date to start clock. Check SEDAR+ for NI 43-101 work plan filing.",
+    airtableField: "Active Permits → Submission Date, Tier Category; GT Active Mines → Status: EXPLORATION",
+    snapshot: "Capture assay results date, NoW submission date, Tier assigned. This is Day 1 of the velocity clock.",
+  },
+  {
+    id: "lc-3", category: "lifecycle", priority: "high",
+    trigger: "NI 43-101 Resource Estimate filed on SEDAR+",
+    fromState: "Resource Definition",
+    toState: "PEA Stage",
+    timeHorizon: "Weeks to PEA commissioning",
+    vaultDelta: 1,
+    vaultNote: "Mineral Criticality Score confirmed and locked. Copper/nickel = 4–5. Gold only = 3. Update Scale/Key Stats immediately.",
+    impacts: ["investors", "subscribers", "operators"],
+    platformSignal: "Gold/Enterprise subscribers: resource size quantified. EXIM/DOE financing universe now visible. US investor due diligence window opens if commodity is on USGS 60 list.",
+    userAction: "Update Scale/Key Stats. Confirm Mineral Criticality Score. Flag Priority Outreach if copper/lithium. Check Allied Offtake % — any early offtake MOU?",
+    airtableField: "GT Active Mines → Mineral Criticality Score, Scale/Key Stats, Priority Outreach",
+    snapshot: "Resource size, grade, commodity. Date of NI 43-101. Mineral Criticality Score value. This is what investors will anchor to.",
+  },
+  {
+    id: "lc-4", category: "lifecycle", priority: "high",
+    trigger: "Positive PEA → Board approves Pre-Feasibility Study",
+    fromState: "PEA",
+    toState: "Pre-Feasibility Study (PFS) — 18-month intensive permitting window",
+    timeHorizon: "18+ months of engineering + parallel Tier 3 permitting",
+    vaultDelta: 1,
+    vaultNote: "+1 if Indigenous agreement advances in parallel. EAC process likely initiates at BC EAO EPIC.",
+    impacts: ["investors", "vendors", "operators", "subscribers"],
+    platformSignal: "Tier 3 (140-day) NoW applications expected. EAC process may initiate. Engineering firms engaged — major vendor contracts across all categories imminent.",
+    userAction: "Monitor BC EAO EPIC for EA Application filing. Watch for Tier 3 NoW in scraper. Set CPO Watch flag in advance. Alert Enterprise subscribers.",
+    airtableField: "Active Permits → Tier Category: Tier 3 — 140 Days; GT Active Mines → EAC Status: EA Process Active",
+    snapshot: "PEA NPV, capex range, EAC initiation date. This snapshot anchors the 18-month permitting timeline for investors.",
+  },
+  {
+    id: "lc-5", category: "lifecycle", priority: "high",
+    trigger: "Positive PFS → Feasibility Study commissioned + financing MOU signed",
+    fromState: "Pre-Feasibility",
+    toState: "Feasibility Study (FS) — 12–24 months",
+    timeHorizon: "12–24 months to FS completion",
+    vaultDelta: 1,
+    vaultNote: "Indigenous Status must reach IBA or Section 7 for full Vault score. Allied offtake negotiations likely at this stage.",
+    impacts: ["investors", "vendors", "operators", "subscribers"],
+    platformSignal: "SEDAR+ watch: MOU or streaming/royalty announcements. Allied offtake negotiations underway. EXIM/DOE interest window fully open if Vault Score ≥ 7.",
+    userAction: "Track Offtake Agreement field. Check Allied Offtake % approaching 25% threshold. Update FORGE Eligibility Status. Watch for royalty/streaming deals.",
+    airtableField: "GT Active Mines → Offtake Agreement, Allied Offtake %, FORGE Eligibility Status",
+    snapshot: "Financing structure, offtake partners, Vault Score at this point. The 'bankability snapshot' for US capital.",
+  },
+  {
+    id: "lc-6", category: "lifecycle", priority: "critical",
+    trigger: "FS complete + financing close + Board construction approval",
+    fromState: "Feasibility Complete",
+    toState: "ADVANCED DEVELOPMENT → Construction",
+    timeHorizon: "Immediate → 3–7 year construction buildout",
+    vaultDelta: 2,
+    vaultNote: "Maximum Vault Score expected. All three components should be maxed. If not, flag the gap explicitly.",
+    impacts: ["investors", "vendors", "operators", "subscribers"],
+    platformSignal: "ALL vendor categories in your directory activate simultaneously. $100M+ contracts flowing. Every Camp Corridor in the GT needs resources.",
+    userAction: "Immediate Enterprise subscriber alert. Activate all vendor matchmaking. Cross-reference BC Vendor List by Service Hub (Stewart/Dease Lake/Iskut-Bob Quinn). Flag for newsletter lead story.",
+    airtableField: "GT Active Mines → Status: ADVANCED DEVELOPMENT, Vault Rating: 🟢 Vault Ready; BC Vendor List → Service Hub filter",
+    snapshot: "Construction start date, capex draw schedule, vendor activation sequence. This is the highest-value snapshot for your directory.",
+  },
+  {
+    id: "lc-7", category: "lifecycle", priority: "high",
+    trigger: "Care & Maintenance + new NoW appears in WFS scraper",
+    fromState: "CARE & MAINTENANCE",
+    toState: "Reactivation Watch",
+    timeHorizon: "30–60 days to first vendor mobilization",
+    vaultDelta: 1,
+    vaultNote: "Check MANUAL_OVERRIDES in miner.py. KSM and Premier require manual status override — WFS may still show Abandoned/C&M.",
+    impacts: ["vendors", "investors", "subscribers"],
+    platformSignal: "Fast vendor mobilization signal. Commodity price spike or JV partner announcement often precedes this. Deposit Style matters: porphyry vs. epithermal needs different crew types.",
+    userAction: "Verify MANUAL_OVERRIDES in miner.py. Update Mine/Project Status manually — do NOT rely on WFS MINE_OP_STATUS_DESC. Confirm via SEDAR+ before publishing to subscribers.",
+    airtableField: "GT Active Mines → Mine/Project Status (manual update); miner.py MANUAL_OVERRIDES dict",
+    snapshot: "Note what triggered reactivation (commodity price? new partner?). This context is what subscribers pay for.",
+  },
+
+  // ─── PERMIT SYSTEM ────────────────────────────────────────────
+  {
+    id: "pm-1", category: "permit", priority: "high",
+    trigger: "New NoW captured by miner.py (post-April 1, 2026)",
+    fromState: "No Active Permit",
+    toState: "INTAKE — Tier clock started",
+    timeHorizon: "T+0 at 8AM daily scrape",
+    vaultDelta: 0,
+    vaultNote: "Permit Speed Score activates: On Track (+2) until missed. Clock is running.",
+    impacts: ["platform", "subscribers"],
+    platformSignal: "🟢 On Track status set automatically. Target Decision Date calculated. Velocity Status live for subscribers. This is the WFS data moat beginning to compound.",
+    userAction: "Assign Tier Category based on disturbance (ha) and activity type. Confirm Submission Date. Set Indigenous Territory. Tag commodity for Priority Outreach if copper/lithium.",
+    airtableField: "Active Permits → NoW Number, Submission Date, Tier Category, Target Decision Date (formula auto-calculates)",
+    snapshot: "NoW number, Submission Date, Tier assigned, Disturbance ha. This is Day 1 of the tier performance record.",
+  },
+  {
+    id: "pm-2", category: "permit", priority: "medium",
+    trigger: "Comment Period opens (typically D+14 to D+30)",
+    fromState: "Under Review",
+    toState: "Comment Period Open",
+    timeHorizon: "30–60 day comment window",
+    vaultDelta: 0,
+    vaultNote: "No Vault change — but Nation objections during this window can cascade to Dispute/Litigation, which will trigger -3.",
+    impacts: ["operators", "investors", "subscribers"],
+    platformSignal: "Watch for formal Nation responses. Any objection during comment period is a major signal — it may not stop the permit but it seeds future litigation risk.",
+    userAction: "Monitor Indigenous Consent Status field. Check BC EAO EPIC for parallel EA filings. Set Comment Period Close date. Watch for public interest group filings.",
+    airtableField: "Active Permits → Comment Period Open, Comment Period Close, Comment Period Status",
+    snapshot: "Comment Period Close date is the key. Any objections filed? Note who filed them.",
+  },
+  {
+    id: "pm-3", category: "permit", priority: "high",
+    trigger: "Days Remaining ≤ 14, no decision issued yet",
+    fromState: "Under Review",
+    toState: "🟡 WATCH — Pre-escalation warning",
+    timeHorizon: "14-day window before CPO escalation",
+    vaultDelta: 0,
+    vaultNote: "Pre-escalation. No Vault change yet — CPO escalation will trigger -0.5. This is the early warning.",
+    impacts: ["subscribers", "investors"],
+    platformSignal: "Gold subscribers see 🟡 Watch signal. This is the early warning before CPO escalation becomes public. Platform-exclusive lead time.",
+    userAction: "Flag record manually. Note reason for delay if discoverable (Indigenous objection? Environmental review?). Prepare CPO escalation note for subscriber publishing.",
+    airtableField: "Active Permits → Velocity Status: 🟡 Watch (formula-driven); Days Remaining formula",
+    snapshot: "Which permit? What Tier? Why is it delayed? This narrative context is what you add that the government data doesn't.",
+  },
+  {
+    id: "pm-4", category: "permit", priority: "critical",
+    trigger: "Target Decision Date passed — no decision issued",
+    fromState: "🟡 Watch",
+    toState: "🔴 OVERDUE → CPO Escalated",
+    timeHorizon: "Immediate — CPO has exactly 14 days",
+    vaultDelta: -1,
+    vaultNote: "Vault Score Modifier -0.5 applied automatically. If repeat escalation on same project: -1.0 cumulative.",
+    impacts: ["investors", "operators", "subscribers", "platform"],
+    platformSignal: "🔴 CPO Active status. Platform-exclusive CPO Escalation Rate tracker updates. No other entity publishes this data. This is your data moat moment — first to market.",
+    userAction: "Set CPO Escalated? = Yes. Log escalation date. Publish to Enterprise subscribers immediately. Add to CPO Escalation Rate log. Note tier (Tier 1 escalation = government failing its easiest target).",
+    airtableField: "Active Permits → CPO Escalated?: Yes, Velocity Status: 🔴 CPO Active, Vault Score Modifier: -0.5",
+    snapshot: "Which tier missed? How many days over? What's the reason (if known)? First post-April 1 CPO escalation = newsletter-worthy.",
+  },
+  {
+    id: "pm-5", category: "permit", priority: "critical",
+    trigger: "CPO issues Approve/Refuse decision within 14-day window",
+    fromState: "CPO Active",
+    toState: "CPO Decision — Approved or Refused",
+    timeHorizon: "Within 14 days of CPO escalation",
+    vaultDelta: 1,
+    vaultNote: "Approval partially recovers timeline. Refusal = -2 total Vault impact. CPO response time itself is intelligence.",
+    impacts: ["investors", "operators", "vendors", "subscribers"],
+    platformSignal: "First post-April 1 CPO decision = major intelligence event regardless of outcome. How fast did CPO respond? Did they use all 14 days? Enterprise newsletter lead.",
+    userAction: "Capture CPO Decision Date. Update Hit Target? = ❌ Missed Target. Note CPO response time (1 day vs. 14 days tells you about capacity). Publish CPO Escalation Rate update.",
+    airtableField: "Active Permits → CPO Decision Date, Hit Target?: ❌ Missed Target, Current Status",
+    snapshot: "CPO escalation date, CPO decision date, decision type, response days used. This is your 'friction indicator' data.",
+  },
+  {
+    id: "pm-6", category: "permit", priority: "high",
+    trigger: "Permit Approved with Conditions",
+    fromState: "Decision Pending",
+    toState: "Approved with Conditions",
+    timeHorizon: "Review conditions within 48 hours",
+    vaultDelta: 0,
+    vaultNote: "Conditions may contain Indigenous consultation requirements that constrain activity even with approval. Read before confirming Vault status.",
+    impacts: ["operators", "investors", "vendors"],
+    platformSignal: "Read the full conditions document. Indigenous-specific conditions can effectively extend timelines even with technical approval. Vendors: check if conditions restrict access routes.",
+    userAction: "Update Current Status: Approved with Conditions. Read conditions text. Flag any Indigenous consent conditions. Update EAC Status if EA was involved. Notify vendor directory for relevant camps.",
+    airtableField: "Active Permits → Current Status: Approved with Conditions, EAC Status, Permit Outcome Notes",
+    snapshot: "How many conditions? Are any Indigenous-consent-specific? This detail separates your analysis from a simple approved/refused read.",
+  },
+  {
+    id: "pm-7", category: "permit", priority: "high",
+    trigger: "NoW description contains 'Bulk Sampling' or 'Permanent Camp'",
+    fromState: "Intake — Tier Unknown",
+    toState: "Tier 3 Classified (140-day clock)",
+    timeHorizon: "140-day countdown begins immediately",
+    vaultDelta: 0,
+    vaultNote: "Longest timeline. EAC likely required in parallel. Most likely to trigger CPO escalation. Watch disturbance area (>5km road or >10ha = Tier 3 signal).",
+    impacts: ["investors", "operators", "vendors", "subscribers"],
+    platformSignal: "Tier 3 is the highest-complexity classification. EAC often required in parallel. Enterprise subscribers: this project will be in permitting limbo for 4–6 months minimum.",
+    userAction: "Classify Tier 3. Set Target Decision Date (Submission + 140 days). Set 14-day Watch trigger at D+126. Cross-reference EAC Status. Flag LOM Grade Profile if known — Porphyry deposits need long-duration camps.",
+    airtableField: "Active Permits → Tier Category: Tier 3 — 140 Days, Target Decision Date, Tier Days: 140",
+    snapshot: "Tier 3 submission date, target date, proposed disturbance ha, activity type. The 140-day clock is your velocity baseline for this project.",
+  },
+  {
+    id: "pm-8", category: "permit", priority: "medium",
+    trigger: "Permit Renewal Count reaches 3+ on same Mine Number",
+    fromState: "Single-cycle permit",
+    toState: "🔴 HIGH — Perpetual Explorer Risk",
+    timeHorizon: "Flag on third renewal",
+    vaultDelta: -1,
+    vaultNote: "Renewal Risk Flag formula fires: 3+ renewals = Perpetual Explorer signal. Project may be in exploration limbo with no development intent.",
+    impacts: ["investors", "subscribers"],
+    platformSignal: "Perpetual Explorer flag is an Avoid List signal. Project may be in 'tenure banking' mode — holding land without development intent. US capital will screen this out.",
+    userAction: "Set Renewal Risk Flag review. Note Previous NoW Number chain. Update Permit Renewal Count. Flag for Gold+ subscriber context in newsletter. Consider Silent Pipeline demotion.",
+    airtableField: "Active Permits → Permit Renewal Count, Renewal Risk Flag (formula), Previous NoW Number",
+    snapshot: "How many renewals? Same operator throughout? Commodity consistent? Pattern tells you if this is genuine exploration or tenure banking.",
+  },
+
+  // ─── INDIGENOUS CONSENT ───────────────────────────────────────
+  {
+    id: "ic-1", category: "indigenous", priority: "medium",
+    trigger: "Company files consultation plan with BC EAO",
+    fromState: "No Engagement",
+    toState: "Consultation Active",
+    timeHorizon: "Multi-month formal process begins",
+    vaultDelta: 1,
+    vaultNote: "Indigenous Status Score: 1 → 2. Vault +1. Process formally initiated but far from de-risked.",
+    impacts: ["investors", "operators"],
+    platformSignal: "Yellow light → orange light. Not de-risked. But absence of consultation = red flag. Note which Nation(s) — Tahltan vs. Nisga'a vs. shared territory changes complexity significantly.",
+    userAction: "Update Indigenous Status: Consultation Active. Set Indigenous Status Score: 2. Note which Nation(s). Cross-reference Indigenous Territory field. Flag if shared territory (dual consultation = longer timeline).",
+    airtableField: "GT Active Mines → Indigenous Status: Consultation Active, Indigenous Status Score: 2, Indigenous Territory",
+    snapshot: "Which Nation? Date consultation formally initiated? Is this Tahltan (TNDC may be vendor + co-decision maker simultaneously)?",
+  },
+  {
+    id: "ic-2", category: "indigenous", priority: "high",
+    trigger: "Term sheet / IBA heads of agreement signed with Nation",
+    fromState: "Consultation Active",
+    toState: "IBA in Negotiation",
+    timeHorizon: "3–6 months to full IBA execution",
+    vaultDelta: 0,
+    vaultNote: "IBA is strong but not Section 7. No Vault score jump yet — Section 7 is the trigger for maximum score.",
+    impacts: ["investors", "operators", "subscribers"],
+    platformSignal: "Material de-risk event. Gold+ subscriber signal. Watch SEDAR+ for formal IBA announcement. If Tahltan/TNDC: note their multi-role — vendor + equity holder + co-decision maker.",
+    userAction: "Update Indigenous Status: IBA in Place. Note TNDC's equity ownership role if Tahltan project — this is a FORGE alignment signal AND permit velocity signal simultaneously.",
+    airtableField: "GT Active Mines → Indigenous Status: IBA in Place; Active Permits → Indigenous Consent Status: IBA in Negotiation",
+    snapshot: "IBA announcement date, economic terms if disclosed, Nation equity stake if any. TNDC equity ownership = underweighted signal in standard analysis.",
+  },
+  {
+    id: "ic-3", category: "indigenous", priority: "critical",
+    trigger: "Section 7 Co-Decision Agreement signed under DRIPA",
+    fromState: "IBA in Place / Consultation Active",
+    toState: "Section 7 Agreement ✅ — Maximum de-risk",
+    timeHorizon: "Immediate capital market event",
+    vaultDelta: 2,
+    vaultNote: "Indigenous Status Score → 3 (maximum). Full Vault Score now achievable. Eskay Creek (Jan 2026) set the precedent — this is the gold standard signal.",
+    impacts: ["investors", "operators", "vendors", "subscribers"],
+    platformSignal: "🟢 Maximum de-risk signal. Vault Ready status achievable. EXIM/DOE financing path fully open. Enterprise immediate alert. This is what US investors are waiting for.",
+    userAction: "Update Indigenous Status: Section 7 Agreement. Set Indigenous Status Score: 3. Recalculate full Vault Score. Send Enterprise alert immediately. Check if Vault Rating now 🟢 Vault Ready.",
+    airtableField: "GT Active Mines → Indigenous Status: Section 7 Agreement, Indigenous Status Score: 3; Vault Score recalculate",
+    snapshot: "Section 7 execution date, Nation(s) party to agreement, co-decision scope. This snapshot is what you send to US fund managers first.",
+  },
+  {
+    id: "ic-4", category: "indigenous", priority: "critical",
+    trigger: "Nation files judicial review or seeks injunction",
+    fromState: "Consultation Active / IBA in Place",
+    toState: "Dispute / Litigation 🔴 — Permit freeze risk",
+    timeHorizon: "Immediate court action possible",
+    vaultDelta: -3,
+    vaultNote: "Indigenous Status Score → 0. Vault drops by 3 minimum. Even existing permits can be frozen mid-process by injunction. Avoid List candidate.",
+    impacts: ["investors", "operators", "subscribers"],
+    platformSignal: "🔴 Hard stop signal. Unlike a permit delay, litigation can freeze a project regardless of government approval status. US investors consider this a capital trap.",
+    userAction: "Update Indigenous Status: Dispute/Litigation. Set Indigenous Status Score: 0. Apply -3 Vault impact. Enterprise immediate alert. Flag for Avoid List review. Check Transboundary Risk field.",
+    airtableField: "GT Active Mines → Indigenous Status, Indigenous Status Score: 0; Active Permits → Indigenous Consent Status: Dispute/Litigation",
+    snapshot: "Which Nation filed? In what court? What is the legal basis? Project name + court file number. This is your 'sovereignty failure' analysis.",
+  },
+  {
+    id: "ic-5", category: "indigenous", priority: "high",
+    trigger: "Southeast Alaska Nation (SEITC) files BC court review",
+    fromState: "Any — including Section 7 projects",
+    toState: "Transboundary Risk Active",
+    timeHorizon: "Multi-year litigation risk even alongside provincial approval",
+    vaultDelta: -1,
+    vaultNote: "Transboundary Risk flag activates. Primarily affects Eskay Creek and Red Chris. Even Section 7 projects are not immune. US offtakers watching closely.",
+    impacts: ["investors", "operators", "subscribers"],
+    platformSignal: "This is separate from Tahltan consent. US EXIM financing may stall even with strong BC Indigenous partnerships if transboundary litigation is active.",
+    userAction: "Set Transboundary Risk field. Note in Permit Outcome Notes. Alert Enterprise subscribers — explain distinction from Tahltan Nation consent. Monitor court filings independently.",
+    airtableField: "GT Active Mines → Transboundary Risk (field flag); Permit Outcome Notes",
+    snapshot: "Case name, court, filing date, which projects named. Explain to Enterprise why this is a US capital risk even if BC approvals are clean.",
+  },
+  {
+    id: "ic-6", category: "indigenous", priority: "medium",
+    trigger: "Project confirmed in shared Tahltan + Nisga'a territory",
+    fromState: "Single Nation consultation assumed",
+    toState: "Dual consultation process — extended timeline",
+    timeHorizon: "+3–6 months added to typical consultation timeline",
+    vaultDelta: -1,
+    vaultNote: "Complexity doubles. Treaty Creek (Tahltan + Nisga'a) = hardest GT Indigenous scenario. Two separate Section 7 pathways required.",
+    impacts: ["investors", "operators"],
+    platformSignal: "Shared territory = most complex GT Indigenous scenario. Two Nations must both reach Section 7 for maximum Vault Score. Investors must understand this isn't one process.",
+    userAction: "Update Indigenous Territory: Tahltan & Nisga'a (Shared). Note dual-consultation timeline in Scale/Key Stats. Adjust Vault score expectations for investors — Section 7 with both Nations is rare.",
+    airtableField: "GT Active Mines → Indigenous Territory: Tahltan & Nisga'a (Shared); Scale/Key Stats notes",
+    snapshot: "Which two Nations? Status with each Nation separately? This dual-track disclosure is what separates your analysis from government summaries.",
+  },
+
+  // ─── VAULT SCORE ──────────────────────────────────────────────
+  {
+    id: "vs-1", category: "vault", priority: "high",
+    trigger: "USGS Annual Critical Minerals List updated",
+    fromState: "Current Mineral Criticality Scores (all 16 projects)",
+    toState: "Possible score shifts — batch recalculation required",
+    timeHorizon: "Annual event — immediate batch update required",
+    vaultDelta: 0,
+    vaultNote: "Individual projects may go +1 or -1. Gold-only projects most exposed to downgrade. Battery metal projects most likely to gain.",
+    impacts: ["investors", "subscribers", "platform"],
+    platformSignal: "Batch update event. All 16 Mineral Criticality Scores need review and possible revision. This is an annual Enterprise newsletter opportunity.",
+    userAction: "Compare new USGS list against all 16 projects. Batch update Mineral Criticality Score (10 records per MCP call max). Recalculate Vault Scores. Publish annual USGS alignment report to Enterprise.",
+    airtableField: "GT Active Mines → Mineral Criticality Score (all 16 records, batch update); Vault Score recalculate",
+    snapshot: "Which projects gained? Which lost? Net Vault Score change across the GT portfolio. This is a premium annual report for Enterprise tier.",
+  },
+  {
+    id: "vs-2", category: "vault", priority: "medium",
+    trigger: "Cross-Sector Infrastructure Flag triggered (pipeline/transmission/LNG permit)",
+    fromState: "Standard Vault Score",
+    toState: "Vault Score +0.5 modifier applied",
+    timeHorizon: "Immediate on flag activation",
+    vaultDelta: 1,
+    vaultNote: "+0.5 Vault Score Modifier (Active Permits level). Signals project has infrastructure co-benefits beyond mining.",
+    impacts: ["investors", "subscribers"],
+    platformSignal: "Cross-sector permits show the project is embedded in broader BC infrastructure build-out. US investors value this — it signals political priority and multi-sector demand.",
+    userAction: "Set Cross-Sector Flag = Yes. Vault Score Modifier +0.5 auto-applies. Note Infrastructure Corridor field (Northwest Coast Pipeline, North Coast Transmission, Ksi Lisims LNG).",
+    airtableField: "Active Permits → Cross-Sector Flag: Yes, Infrastructure Corridor, Vault Score Modifier: +0.5",
+    snapshot: "Which infrastructure corridor? What permit type? Cross-sector status adds context for why this project gets government priority attention.",
+  },
+  {
+    id: "vs-3", category: "vault", priority: "critical",
+    trigger: "Repeat Non-Compliance Violation confirmed (same category, 2nd+ offense)",
+    fromState: "Standard Vault Score",
+    toState: "Vault Score -1.0 modifier — hardest penalty",
+    timeHorizon: "Immediate on logging",
+    vaultDelta: -2,
+    vaultNote: "-1.0 Vault Score Modifier (maximum deduction). Can drop Vault Ready to Neutral or Watch instantly. Red Chris: hydrogeological failures 2022–2024, up to $1M exposure.",
+    impacts: ["investors", "operators", "subscribers"],
+    platformSignal: "Hardest compliance signal in the platform. Red Chris is the proof-of-pattern case. US investors using Vault Scores as screening criteria will see immediate downgrade.",
+    userAction: "Set Non-Compliance Flag: Repeat Violation. -1.0 modifier auto-applies. Enterprise immediate alert. Document for Environmental Compliance Tracker Phase 2 proof-of-need. Check Environmental Monitoring Tier.",
+    airtableField: "Active Permits → Non-Compliance Flag: Repeat Violation, Vault Score Modifier: -1.0, Environmental Monitoring Tier",
+    snapshot: "What was violated? How many times? What's the regulatory exposure ($)? Red Chris pattern = proof this intelligence has real capital value.",
+  },
+  {
+    id: "vs-4", category: "vault", priority: "high",
+    trigger: "CPO Escalation triggered OR Penalty Levied by BC Mines Inspector",
+    fromState: "Standard Vault Score",
+    toState: "Vault Score -0.5 modifier applied",
+    timeHorizon: "Immediate on flag",
+    vaultDelta: -1,
+    vaultNote: "-0.5 modifier. Combined with Repeat Violation = -1.5 total possible (one -0.5 + one -1.0). Vault Ready at 10 would drop to 8.5.",
+    impacts: ["investors", "subscribers"],
+    platformSignal: "Permit-level friction visible in the Vault Score. US investors see the combined drag. This is why the Vault Score has modifier architecture — single events stack.",
+    userAction: "Confirm CPO Escalated? = Yes OR Non-Compliance Flag = Penalty Levied. -0.5 modifier auto-applies via formula. Note in Permit Outcome Notes. Publish impact to subscribers.",
+    airtableField: "Active Permits → Vault Score Modifier: -0.5 (formula-driven by CPO or Penalty flag)",
+    snapshot: "What triggered the modifier? Date? Combined modifier total? A project at -1.5 total is your 'friction story' for the quarter.",
+  },
+
+  // ─── US CAPITAL / FORGE ───────────────────────────────────────
+  {
+    id: "uc-1", category: "capital", priority: "critical",
+    trigger: "Allied offtake agreement announced (≥25% production to US/allied OEM)",
+    fromState: "Offtake: Unknown or Unaligned",
+    toState: "Allied Offtake Threshold Met — Project Vault eligible",
+    timeHorizon: "Immediate on SEDAR+ news release",
+    vaultDelta: 1,
+    vaultNote: "Project Vault eligibility gate cleared. EXIM Direct Loan or DOE Title 17 financing path now open. Update FORGE Eligibility Status.",
+    impacts: ["investors", "operators", "subscribers"],
+    platformSignal: "The most important US capital signal in the platform. Allied Offtake % ≥ 25% unlocks the full US financing stack. Enterprise immediate alert.",
+    userAction: "Update Offtake Agreement field with partner name. Set Allied Offtake % ≥ 25%. Update FORGE Eligibility Status: FORGE Zone Aligned. Enterprise immediate alert with EXIM/DOE context.",
+    airtableField: "GT Active Mines → Offtake Agreement, Allied Offtake %, FORGE Eligibility Status: FORGE Zone Aligned",
+    snapshot: "Offtake partner name, % committed, term (years), pricing mechanism (spot vs. fixed). This is the bankability snapshot for US fund managers.",
+  },
+  {
+    id: "uc-2", category: "capital", priority: "critical",
+    trigger: "PFE ownership exceeds 25% — disclosed via corporate transaction",
+    fromState: "Project Vault Eligible",
+    toState: "Project Vault DISQUALIFIED — US capital blocked",
+    timeHorizon: "Immediate — capital market reaction",
+    vaultDelta: -3,
+    vaultNote: "Project Vault eligibility lost. US Section 45X tax credits lost. Major capital flight risk. Vault drops to 1–4 range regardless of geology or permits.",
+    impacts: ["investors", "operators", "subscribers"],
+    platformSignal: "🔴 Maximum US capital risk signal. Even strong BC geology becomes irrelevant if PFE threshold is breached. Avoid List candidate for US-oriented capital.",
+    userAction: "Update PFE Exposure % field. Set FORGE Eligibility Status: Pending Assessment. Enterprise immediate alert explaining the disqualification mechanism. Consider Avoid List.",
+    airtableField: "GT Active Mines → PFE Exposure %, FORGE Eligibility Status; Vault Rating: 🔴 Watch",
+    snapshot: "Who is the PFE? What % do they hold? Direct ownership or 'effective control' via offtake or financing? This distinction matters for MACR analysis.",
+  },
+  {
+    id: "uc-3", category: "capital", priority: "high",
+    trigger: "Chinese smelter contract disclosed — Processing PFE Flag activates",
+    fromState: "MACR: Unknown / Compliant",
+    toState: "MACR: Non-Compliant — 'clean cap table, dirty supply chain'",
+    timeHorizon: "On disclosure — may require SEDAR+ deep dive",
+    vaultDelta: -1,
+    vaultNote: "Section 45X credits at risk even with 100% Western BC ownership. The 60% non-PFE supply chain rule applies to processing too.",
+    impacts: ["investors", "subscribers"],
+    platformSignal: "The Wicheeda scenario: good ore, wrong smelter partner. If the ore still routes to China for refining, the US financing stack collapses even with clean ownership.",
+    userAction: "Set Processing PFE Flag. Update MACR Compliance: Non-Compliant. Note in Major Interest Notes. Enterprise flag with explanation of 60% rule and downstream processing requirement.",
+    airtableField: "GT Active Mines → MACR Compliance: Non-Compliant, Processing PFE Flag, Major Interest Notes",
+    snapshot: "Which smelter? PFE-controlled? % of production routing through it? This is the supply chain intelligence that no government data provides.",
+  },
+  {
+    id: "uc-4", category: "capital", priority: "medium",
+    trigger: "MACR Compliance confirmed via disclosure (≥60% non-PFE supply chain)",
+    fromState: "MACR: Unknown",
+    toState: "MACR: Compliant ✅ — Section 45X eligible",
+    timeHorizon: "On SEDAR+ disclosure or due diligence confirmation",
+    vaultDelta: 0,
+    vaultNote: "No Vault Score change — but major US investor confidence signal. Western-made equipment advantage proven. EXIM financing cost advantage unlocked.",
+    impacts: ["investors", "subscribers"],
+    platformSignal: "Full Section 45X tax credit eligibility confirmed. This reduces effective project cost for US-backed capital by a meaningful margin. Enterprise positive signal.",
+    userAction: "Update MACR Compliance: Compliant. Note source of confirmation (SEDAR+ disclosure or direct company confirmation). Publish to Enterprise as positive intelligence.",
+    airtableField: "GT Active Mines → MACR Compliance: Compliant; Source URL for evidence",
+    snapshot: "What % of supply chain is non-PFE? Equipment manufacturers named? This is the 'MACR scorecard' US EXIM reviewers will want.",
+  },
+
+  // ─── COMPLIANCE ───────────────────────────────────────────────
+  {
+    id: "co-1", category: "compliance", priority: "medium",
+    trigger: "Advisory issued by BC Mine Inspector",
+    fromState: "Non-Compliance: None on Record",
+    toState: "Advisory Issued — monitoring only",
+    timeHorizon: "Watch for escalation within 30 days",
+    vaultDelta: 0,
+    vaultNote: "No Vault modifier yet. Watch for Order or Penalty within 30 days — pattern detection is the value here.",
+    impacts: ["operators", "subscribers"],
+    platformSignal: "Low severity in isolation. But first Advisory often precedes Order. Pattern detection across the 16 projects is where your platform adds value.",
+    userAction: "Update Non-Compliance Flag: Advisory Issued. Set 30-day escalation watch. Note in Permit Outcome Notes. No Enterprise alert yet — log for context and pattern tracking.",
+    airtableField: "Active Permits → Non-Compliance Flag: Advisory Issued; Permit Outcome Notes",
+    snapshot: "What was flagged? Date? Inspector's stated concern? Document now — if it escalates, you have the first entry in the pattern.",
+  },
+  {
+    id: "co-2", category: "compliance", priority: "high",
+    trigger: "Order issued by BC Mine Inspector",
+    fromState: "Advisory Issued / None on Record",
+    toState: "Order Issued — operations constrained",
+    timeHorizon: "Immediate operational impact",
+    vaultDelta: -1,
+    vaultNote: "Vault Score Modifier -0.5. Operations may be partially restricted. Vendor activity may slow in affected area.",
+    impacts: ["operators", "investors", "vendors", "subscribers"],
+    platformSignal: "Operations constrained by Ministerial Order. Vendor activity may slow. Gold+ subscriber signal. Check if this matches Red Chris pattern (hydrogeological monitoring).",
+    userAction: "Update Non-Compliance Flag: Order Issued. Apply -0.5 Vault modifier. Alert Gold+ subscribers. Check Environmental Monitoring Tier. Watch for repeat within 90 days (triggers -1.0).",
+    airtableField: "Active Permits → Non-Compliance Flag: Order Issued, Vault Score Modifier: -0.5, Environmental Monitoring Tier",
+    snapshot: "Order content, scope of restriction, compliance deadline, mine's response. Is this the second in a pattern? That distinction changes the entire investor narrative.",
+  },
+  {
+    id: "co-3", category: "compliance", priority: "critical",
+    trigger: "Repeat Violation confirmed — same category, second or greater offense",
+    fromState: "Order Issued / Penalty Levied",
+    toState: "Repeat Violation 🔴 — Maximum compliance signal",
+    timeHorizon: "Immediate platform action required",
+    vaultDelta: -2,
+    vaultNote: "-1.0 Vault Score Modifier (maximum). Red Chris proof: hydrogeological failures 2022–2024, repeat violation multipliers, up to $1M maximum exposure.",
+    impacts: ["investors", "operators", "subscribers"],
+    platformSignal: "Hardest compliance signal. Enterprise immediate alert. Vault Ready status likely lost. Red Chris is your living case study — use it to prove the Environmental Compliance Tracker's value.",
+    userAction: "Set Non-Compliance Flag: Repeat Violation. -1.0 modifier auto-applies. Enterprise immediate alert. Document full violation history. This is the proof-of-need data for Phase 2 Environmental Compliance Tracker.",
+    airtableField: "Active Permits → Non-Compliance Flag: Repeat Violation, Vault Score Modifier: -1.0",
+    snapshot: "Full violation history (dates, categories, fines). Pattern = your 'Red Chris case study' that justifies the Environmental Compliance Tracker at $300–800/month per site.",
+  },
+  {
+    id: "co-4", category: "compliance", priority: "high",
+    trigger: "Reclamation Bond required but not posted",
+    fromState: "Bond Status: Not Yet Required",
+    toState: "Bond: Required — Not Posted",
+    timeHorizon: "Compliance gap active until resolved",
+    vaultDelta: -1,
+    vaultNote: "Regulatory gap. BC's Public Interest Bonding Strategy (PIBS) may require much larger bonds — watch for legislative updates that could cascade across multiple projects.",
+    impacts: ["investors", "operators"],
+    platformSignal: "Required — Not Posted = financing risk. US EXIM financing typically requires proof of bond before approval. Legislative update to PIBS could affect 4–6 GT projects simultaneously.",
+    userAction: "Set Reclamation Security Bond Status: Required — Not Posted. Flag in Bond Status Watch view. Alert Enterprise if bond amount is material. Monitor PIBS legislative updates — could be batch impact.",
+    airtableField: "Active Permits → Reclamation Security Bond Status: Required — Not Posted; Bond Status Watch view",
+    snapshot: "Bond amount required, deadline for posting, mine's response. If PIBS is updated, this could trigger a batch impact across multiple projects — that's a newsletter story.",
+  },
+
+  // ─── OWNERSHIP EVENTS ─────────────────────────────────────────
+  {
+    id: "ow-1", category: "ownership", priority: "high",
+    trigger: "Acquisition announced — SEDAR+ corporate filing",
+    fromState: "Ownership: Stable",
+    toState: "Ownership: Under Offer → Recently Acquired",
+    timeHorizon: "Weeks to Ministry record update (platform advantage window)",
+    vaultDelta: 0,
+    vaultNote: "No immediate Vault change. But PFE check on acquirer is mandatory immediately. Government records will lag by months — platform advantage window is now open.",
+    impacts: ["vendors", "investors", "operators", "subscribers"],
+    platformSignal: "Platform advantage: update ownership immediately from SEDAR+. Government records lag by months (Newmont example: still showed prior permittee post-acquisition). Vendor relationships in flux.",
+    userAction: "Update Project Owner(s) immediately from SEDAR+. Set Ownership Watch: Recently Acquired. Do NOT change Permitee Name in Active Permits — wait for Ministry records. Check acquirer for PFE risk immediately.",
+    airtableField: "GT Active Mines → Project Owner(s), Ownership Watch: Recently Acquired (do NOT change Permitee Name in Active Permits yet)",
+    snapshot: "Acquirer name, deal value, PFE status of acquirer, expected close date. This is the intelligence gap window — your platform knows before the government records do.",
+  },
+  {
+    id: "ow-2", category: "ownership", priority: "high",
+    trigger: "JV agreement filed — new partner joins project",
+    fromState: "Owner-Operator or existing JV",
+    toState: "Joint Venture — new capital and operating structure",
+    timeHorizon: "Capital injection often immediate on close",
+    vaultDelta: 1,
+    vaultNote: "JV with major = capital acceleration. Allied JV partner = FORGE positive. PFE JV partner = immediate disqualification risk.",
+    impacts: ["investors", "vendors", "operators", "subscribers"],
+    platformSignal: "Capital injection likely. JV managing partner drives all vendor procurement decisions. Galore Creek (Newmont + Teck/Anglo Teck) = template for maximum GT impact.",
+    userAction: "Update Operating Model: JV Managing Partner. Note JV structure in Major Interest Notes. Check JV partner PFE status. Update Ticker if JV partner is public. Allied JV = FORGE signal.",
+    airtableField: "GT Active Mines → Operating Model: JV Managing Partner, Major Interest, Major Interest Notes",
+    snapshot: "JV partner name, equity split, operating partner, capital commitment. Anglo Teck commitment of C$4.5B over 5 years = your benchmark for scale context.",
+  },
+  {
+    id: "ow-3", category: "ownership", priority: "medium",
+    trigger: "Company rebrands / name change filed",
+    fromState: "Prior Company Name",
+    toState: "New Name (Mine Number is unchanged — permanent)",
+    timeHorizon: "Immediate update required",
+    vaultDelta: 0,
+    vaultNote: "Mine Number NEVER changes. All permit records remain stable. Only display name and ticker update. Example: Ascot Resources → Cambria Gold Mines (Feb 2026).",
+    impacts: ["platform", "subscribers"],
+    platformSignal: "Rebrands can confuse subscribers if not flagged. Mine Number is the permanent anchor. Platform should note the rebrand with date for search continuity.",
+    userAction: "Update Project Owner(s) and Ticker only. Do NOT create a new record. Mine Number is the permanent identifier. Note rebrand date in Scale/Key Stats. Check SEDAR+ for new ticker.",
+    airtableField: "GT Active Mines → Project Owner(s), Ticker (Mine Number unchanged — the permanent anchor)",
+    snapshot: "Old name, new name, date of change, new ticker. Simple note in Scale/Key Stats ensures no subscriber confusion.",
+  },
+  {
+    id: "ow-4", category: "ownership", priority: "medium",
+    trigger: "New Permitee Name appears under existing Mine Number in WFS scraper",
+    fromState: "Prior Operator in Ministry records",
+    toState: "New Operator confirmed by Ministry — government records now current",
+    timeHorizon: "Ministry processing complete (often months after announcement)",
+    vaultDelta: 0,
+    vaultNote: "Government records catching up to corporate reality. Platform may have known for weeks or months already. Platform advantage window closes here.",
+    impacts: ["platform", "subscribers"],
+    platformSignal: "Government records now match corporate reality. If platform updated ownership correctly on announcement day, this confirms the platform's intelligence lead. Note the lag duration — it's a data point.",
+    userAction: "Update Permitee Name in Active Permits. Cross-reference with GT Active Mines Operator field to confirm consistency. Note 'Ministry records now current' and the lag duration in Permit Outcome Notes.",
+    airtableField: "Active Permits → Permitee Name; GT Active Mines → Operator (confirm both fields now match)",
+    snapshot: "How many days did Ministry records lag behind the public announcement? This lag duration is itself intelligence — it quantifies your platform's lead time.",
+  },
+];
+
+const VAULT_DELTA_DISPLAY = {
+  "-3": { label: "−3", color: "var(--red)", desc: "Severe drop" },
+  "-2": { label: "−2", color: "var(--red)", desc: "Major drop" },
+  "-1": { label: "−1", color: "var(--gold-dim)", desc: "Moderate drop" },
+  "0": { label: "±0", color: "var(--text-dim)", desc: "No change" },
+  "1": { label: "+1", color: "var(--green)", desc: "Moderate gain" },
+  "2": { label: "+2", color: "var(--green)", desc: "Major gain" },
+  "3": { label: "+3", color: "var(--green)", desc: "Maximum gain" },
+};
+
+function BCMIDecisionTree() {
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [activePriority, setActivePriority] = useState("all");
+  const [search, setSearch] = useState("");
+  const [expandedId, setExpandedId] = useState(null);
+
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    CATEGORIES.forEach(c => {
+      counts[c.id] = c.id === "all"
+        ? decisions.length
+        : decisions.filter(d => d.category === c.id).length;
+    });
+    return counts;
+  }, []);
+
+  const filtered = useMemo(() => {
+    return decisions.filter(d => {
+      if (activeCategory !== "all" && d.category !== activeCategory) return false;
+      if (activePriority !== "all" && d.priority !== activePriority) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (
+          d.trigger.toLowerCase().includes(q) ||
+          d.fromState.toLowerCase().includes(q) ||
+          d.toState.toLowerCase().includes(q) ||
+          d.platformSignal.toLowerCase().includes(q) ||
+          d.userAction.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [activeCategory, activePriority, search]);
+
+  const catColor = (id) => CATEGORIES.find(c => c.id === id)?.color || "var(--text-dim)";
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "var(--bg-deep)",
+      fontFamily: "var(--font-sans)",
+      color: "var(--text-hi)",
+    }}>
+      
+      <style>{`
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { height: 4px; width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-card); }
+        ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+        .row-item { transition: background 0.12s ease; cursor: pointer; }
+        .row-item:hover { background: var(--border) !important; }
+        .cat-pill { transition: all 0.15s ease; cursor: pointer; border: 1px solid transparent; }
+        .cat-pill:hover { border-color: rgba(232,168,48,0.3); }
+        .expand-content { animation: slideIn 0.15s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .mono { font-family: var(--font-mono); }
+        .display { font-family: var(--font-cond); }
+      `}</style>
+
+      {/* HEADER */}
+      <div style={{
+        borderBottom: "1px solid var(--border)",
+        padding: "24px 28px 20px",
+        background: "linear-gradient(180deg, var(--bg-card2) 0%, var(--bg-deep) 100%)",
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div style={{
+                fontFamily: "var(--font-cond)",
+                fontSize: 22,
+                fontWeight: 700,
+                color: "var(--gold)",
+                letterSpacing: "-0.3px",
+              }}>BC Mining Intel</div>
+              <div style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                color: "var(--text-dim)",
+                border: "1px solid var(--border-hi)",
+                borderRadius: 3,
+                padding: "2px 7px",
+                letterSpacing: "0.5px",
+              }}>DECISION ENGINE v1</div>
+            </div>
+            <div style={{ fontSize: 13, color: "var(--text-dim)", fontStyle: "italic" }}>
+              State-change triggers, cascade impacts & subscriber action table — Golden Triangle intelligence platform
+            </div>
+          </div>
+          {/* Stats row */}
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            {[
+              { label: "Total Signals", val: decisions.length, color: "var(--text-hi)" },
+              { label: "Critical", val: decisions.filter(d => d.priority === "critical").length, color: "var(--red)" },
+              { label: "High", val: decisions.filter(d => d.priority === "high").length, color: "var(--gold)" },
+              { label: "Medium", val: decisions.filter(d => d.priority === "medium").length, color: "var(--blue)" },
+            ].map(s => (
+              <div key={s.label} style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 500, color: s.color, lineHeight: 1 }}>{s.val}</div>
+                <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 3, letterSpacing: "0.3px" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Category tabs */}
+        <div style={{
+          display: "flex", gap: 6, marginTop: 20,
+          overflowX: "auto", paddingBottom: 4,
+        }}>
+          {CATEGORIES.map(cat => {
+            const active = activeCategory === cat.id;
+            const color = cat.color || "var(--gold)";
+            return (
+              <button key={cat.id} className="cat-pill" onClick={() => setActiveCategory(cat.id)} style={{
+                background: active ? `${color}18` : "transparent",
+                border: `1px solid ${active ? color : "var(--border-hi)"}`,
+                borderRadius: 6,
+                padding: "5px 12px",
+                color: active ? color : "var(--text-dim)",
+                fontSize: 12,
+                fontFamily: "var(--font-mono)",
+                whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}>
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <span style={{
+                  background: active ? `${color}30` : "var(--border)",
+                  color: active ? color : "var(--text-dim)",
+                  borderRadius: 10,
+                  padding: "1px 6px",
+                  fontSize: 10,
+                }}>{categoryCounts[cat.id]}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search + priority filter */}
+        <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search triggers, states, actions..."
+            style={{
+              flex: 1, minWidth: 200,
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-hi)",
+              borderRadius: 6,
+              padding: "7px 12px",
+              color: "var(--text-hi)",
+              fontSize: 13,
+              fontFamily: "var(--font-mono)",
+              outline: "none",
+            }}
+          />
+          <div style={{ display: "flex", gap: 4 }}>
+            {["all", "critical", "high", "medium"].map(p => (
+              <button key={p} onClick={() => setActivePriority(p)} style={{
+                background: activePriority === p
+                  ? (p === "all" ? "var(--border)" : PRIORITY_CONFIG[p]?.bg || "var(--border)")
+                  : "transparent",
+                border: `1px solid ${activePriority === p
+                  ? (p === "all" ? "var(--border-hi)" : PRIORITY_CONFIG[p]?.color || "var(--border-hi)")
+                  : "var(--border-hi)"}`,
+                borderRadius: 6,
+                padding: "5px 11px",
+                color: activePriority === p
+                  ? (p === "all" ? "var(--text-hi)" : PRIORITY_CONFIG[p]?.color || "var(--text-hi)")
+                  : "var(--text-dim)",
+                fontSize: 11,
+                fontFamily: "var(--font-mono)",
+                cursor: "pointer",
+                letterSpacing: "0.3px",
+              }}>
+                {p === "all" ? "ALL" : p.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Results count */}
+        <div style={{ marginTop: 10, fontSize: 11, color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+          {filtered.length} of {decisions.length} decision records
+          {search && ` — matching "${search}"`}
+        </div>
+      </div>
+
+      {/* COLUMN HEADERS */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "80px 1fr 1fr 60px 180px",
+        gap: 0,
+        padding: "8px 28px",
+        borderBottom: "1px solid var(--border)",
+        background: "var(--bg-deep)",
+      }}>
+        {["PRIORITY", "TRIGGER → STATE CHANGE", "PLATFORM SIGNAL", "VAULT Δ", "WHO IS IMPACTED"].map((h, i) => (
+          <div key={h} style={{
+            fontSize: 9,
+            color: "var(--text-dim)",
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.8px",
+            textAlign: i === 3 ? "center" : "left",
+          }}>{h}</div>
+        ))}
+      </div>
+
+      {/* DECISION ROWS */}
+      <div>
+        {filtered.length === 0 && (
+          <div style={{ padding: "40px 28px", textAlign: "center", color: "var(--text-dim)", fontStyle: "italic" }}>
+            No signals match this filter. Try broadening your search.
+          </div>
+        )}
+        {filtered.map((d, idx) => {
+          const isOpen = expandedId === d.id;
+          const catCol = catColor(d.category);
+          const pCfg = PRIORITY_CONFIG[d.priority];
+          const vaultKey = String(d.vaultDelta);
+          const vaultDisplay = VAULT_DELTA_DISPLAY[vaultKey] || VAULT_DELTA_DISPLAY["0"];
+
+          return (
+            <div key={d.id} style={{ borderBottom: "1px solid var(--bg-card)" }}>
+              {/* Main row */}
+              <div
+                className="row-item"
+                onClick={() => setExpandedId(isOpen ? null : d.id)}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "80px 1fr 1fr 60px 180px",
+                  gap: 0,
+                  padding: "13px 28px",
+                  background: isOpen ? "var(--bg-card)" : (idx % 2 === 0 ? "var(--bg-deep)" : "var(--bg-deep)"),
+                  borderLeft: `2px solid ${catCol}`,
+                  alignItems: "start",
+                }}
+              >
+                {/* Priority */}
+                <div>
+                  <span style={{
+                    display: "inline-block",
+                    fontSize: 9,
+                    fontFamily: "var(--font-mono)",
+                    letterSpacing: "0.5px",
+                    color: pCfg.color,
+                    background: pCfg.bg,
+                    border: `1px solid ${pCfg.color}40`,
+                    borderRadius: 3,
+                    padding: "2px 5px",
+                  }}>{pCfg.label}</span>
+                  <div style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 4, fontFamily: "var(--font-mono)" }}>
+                    {d.id}
+                  </div>
+                </div>
+
+                {/* Trigger + State change */}
+                <div style={{ paddingRight: 16 }}>
+                  <div style={{ fontSize: 13, color: "var(--text-hi)", marginBottom: 5, lineHeight: 1.4 }}>
+                    {d.trigger}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <span style={{
+                      fontSize: 10,
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--text-dim)",
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-hi)",
+                      borderRadius: 3,
+                      padding: "2px 6px",
+                    }}>{d.fromState}</span>
+                    <span style={{ color: "var(--gold)", fontSize: 11 }}>→</span>
+                    <span style={{
+                      fontSize: 10,
+                      fontFamily: "var(--font-mono)",
+                      color: catCol,
+                      background: `${catCol}12`,
+                      border: `1px solid ${catCol}40`,
+                      borderRadius: 3,
+                      padding: "2px 6px",
+                    }}>{d.toState}</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 5, fontStyle: "italic" }}>
+                    ⏱ {d.timeHorizon}
+                  </div>
+                </div>
+
+                {/* Platform Signal (abbreviated) */}
+                <div style={{ paddingRight: 16 }}>
+                  <div style={{ fontSize: 12, color: "var(--text-mid)", lineHeight: 1.45 }}>
+                    {d.platformSignal.length > 110
+                      ? d.platformSignal.slice(0, 110) + "…"
+                      : d.platformSignal}
+                  </div>
+                </div>
+
+                {/* Vault Delta */}
+                <div style={{ textAlign: "center" }}>
+                  <div style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: `${vaultDisplay.color}15`,
+                    border: `1px solid ${vaultDisplay.color}40`,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: vaultDisplay.color,
+                  }}>{vaultDisplay.label}</div>
+                </div>
+
+                {/* Impacts */}
+                <div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {d.impacts.map(imp => {
+                      const cfg = IMPACT_CONFIG[imp];
+                      return (
+                        <span key={imp} style={{
+                          fontSize: 9,
+                          fontFamily: "var(--font-mono)",
+                          color: cfg.color,
+                          background: cfg.bg,
+                          border: `1px solid ${cfg.color}30`,
+                          borderRadius: 3,
+                          padding: "2px 5px",
+                          letterSpacing: "0.3px",
+                        }}>{cfg.label}</span>
+                      );
+                    })}
+                  </div>
+                  <div style={{
+                    marginTop: 8,
+                    fontSize: 10,
+                    color: isOpen ? "var(--gold)" : "var(--text-dim)",
+                    fontFamily: "var(--font-mono)",
+                  }}>
+                    {isOpen ? "▲ collapse" : "▼ expand"}
+                  </div>
+                </div>
+              </div>
+
+              {/* EXPANDED DETAIL PANEL */}
+              {isOpen && (
+                <div className="expand-content" style={{
+                  background: "var(--bg-card2)",
+                  borderTop: "1px solid var(--border)",
+                  padding: "20px 28px 24px",
+                  borderLeft: `2px solid ${catCol}`,
+                }}>
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                    gap: 20,
+                  }}>
+                    {/* Platform Signal — full */}
+                    <DetailBlock
+                      icon="◎"
+                      title="Platform Signal"
+                      color="var(--blue)"
+                      content={d.platformSignal}
+                    />
+
+                    {/* User Action */}
+                    <DetailBlock
+                      icon="→"
+                      title="Subscriber Action"
+                      color="var(--gold)"
+                      content={d.userAction}
+                      mono={false}
+                    />
+
+                    {/* Vault note */}
+                    <DetailBlock
+                      icon="◆"
+                      title="Vault Score Detail"
+                      color={vaultDisplay.color}
+                      content={d.vaultNote}
+                      extra={
+                        <div style={{
+                          marginTop: 8,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          background: `${vaultDisplay.color}10`,
+                          border: `1px solid ${vaultDisplay.color}30`,
+                          borderRadius: 4,
+                          padding: "4px 10px",
+                        }}>
+                          <span style={{ fontFamily: "var(--font-mono)", fontSize: 16, color: vaultDisplay.color, fontWeight: 500 }}>{vaultDisplay.label}</span>
+                          <span style={{ fontSize: 11, color: "var(--text-dim)" }}>{vaultDisplay.desc}</span>
+                        </div>
+                      }
+                    />
+
+                    {/* Snapshot */}
+                    <DetailBlock
+                      icon="📸"
+                      title="Subscriber Snapshot Capture"
+                      color="var(--teal)"
+                      content={d.snapshot}
+                      note="What a user would record at this decision point"
+                    />
+                  </div>
+
+                  {/* Airtable field reference */}
+                  <div style={{
+                    marginTop: 16,
+                    padding: "10px 14px",
+                    background: "var(--bg-card2)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                  }}>
+                    <span style={{ color: "var(--gold)", fontSize: 12, marginTop: 1 }}>⌗</span>
+                    <div>
+                      <div style={{ fontSize: 9, color: "var(--text-dim)", fontFamily: "var(--font-mono)", letterSpacing: "0.5px", marginBottom: 4 }}>AIRTABLE FIELD REFERENCE</div>
+                      <div style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "var(--font-mono)", lineHeight: 1.6 }}>{d.airtableField}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* FOOTER */}
+      <div style={{
+        borderTop: "1px solid var(--border)",
+        padding: "16px 28px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "var(--bg-deep)",
+      }}>
+        <div style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+          BC MINING INTEL · DECISION ENGINE · FOR INFORMATIONAL PURPOSES ONLY · NOT FINANCIAL ADVICE
+        </div>
+        <div style={{ fontSize: 10, color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+          {decisions.length} signals · June 2026
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailBlock({ icon, title, color, content, mono = false, extra, note }) {
+  return (
+    <div style={{
+      background: "var(--bg-card2)",
+      border: "1px solid var(--border)",
+      borderRadius: 6,
+      padding: "14px 16px",
+    }}>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        marginBottom: 8,
+      }}>
+        <span style={{ color, fontSize: 12 }}>{icon}</span>
+        <span style={{
+          fontSize: 9,
+          fontFamily: "var(--font-mono)",
+          color,
+          letterSpacing: "0.7px",
+        }}>{title.toUpperCase()}</span>
+        {note && <span style={{ fontSize: 9, color: "var(--text-dim)", fontStyle: "italic" }}>— {note}</span>}
+      </div>
+      <div style={{
+        fontSize: 12,
+        color: "var(--text-mid)",
+        lineHeight: 1.6,
+        fontFamily: mono ? "var(--font-mono)" : "var(--font-sans)",
+      }}>
+        {content}
+      </div>
+      {extra && <div style={{ marginTop: 10 }}>{extra}</div>}
+    </div>
+  );
+}
+
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<BCMIDecisionTree />);
+  </script>
+</body>
+</html>
