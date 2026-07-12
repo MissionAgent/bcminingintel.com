@@ -26,3 +26,7 @@ venv/
 
 # Claude project context (keep local only)
 CLAUDE.md
+
+# Local-only — never publish to the public site
+bcmi-scraper/
+_git_stale_locks/
